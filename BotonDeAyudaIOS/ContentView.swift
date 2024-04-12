@@ -9,19 +9,22 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Button{
-                
-            }label:{
-                Text("Botón de ayuda")
-                    .padding(10)
-                    .foregroundStyle(Color.white)
-                    .background(Color.red)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    
+            NavigationView{
+                VStack{
+                    Button{ //Agregar el botón principal de ayuda
+                        
+                    }label:{ //Darle la estética y la forma al botón
+                        Text("Botón de ayuda")
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.height * 0.25)
+                            .padding(10)
+                            .foregroundStyle(Color.white)
+                            .background(Color.green)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                        .padding()
+                }.navigationTitle("Press Help Button")
             }
-        }
-        .padding()
+        
     }
 }
 
