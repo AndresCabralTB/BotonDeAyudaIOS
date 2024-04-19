@@ -10,22 +10,34 @@ import SwiftUI
 struct Profile: View {
     
     @State private var selection = 0
+    @State var userData: UserData = UserData(name: "", dateOfBirth: "", gender: "", phoneNumber: "")
+    @State var contactVM = ContactViewModel()
 
     public var priorityList = ["Priority 1", "Priority 2", "Priority 3"]
     
     var body: some View {
         
-        //Creat un view del perfíl
+        //Crea un view del perfíl
         NavigationView{
             Form{
                 //Crear la sección para la información de usuario
                 Section("User Information"){
                     List{
-                        Text("Name: ")
-                        Text("Date of Birth: ")
-                        Text("Gender: ")
-                        Text("Phone Number: ")
-                        Text("Medical Record: ")
+                        TextField("Name", text: $userData.name)
+                        TextField("Date of Birth:", text: $userData.dateOfBirth)
+                        TextField("Gender: ", text: $userData.gender)
+                        TextField("Phone Number: ", text: $userData.phoneNumber)
+                        Button{
+                            Task{
+                                do{
+                                    try await contactVM.addUser(user: userData)
+                                }
+                            }
+                        } label:{
+                            Text("Enter information")
+                                .foregroundStyle(Color.blue)
+                                .frame(maxWidth: .infinity)
+                        }
                     }
                 }
                 //Crear la sección para la información del contacto de emergencia
