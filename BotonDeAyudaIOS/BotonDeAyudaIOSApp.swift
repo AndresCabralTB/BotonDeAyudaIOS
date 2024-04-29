@@ -9,14 +9,19 @@ import SwiftUI
 import Firebase
 import FirebaseCore
 
+
+
 @main
 struct BotonDeAyudaIOSApp: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
+    @State var userID = UserID()
+    
     var body: some Scene {
         WindowGroup {
             HomePage()
+                .environmentObject(userID)
         }
     }
     

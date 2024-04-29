@@ -8,12 +8,17 @@
 import SwiftUI
 
 struct Profile: View {
+    @EnvironmentObject var userID: UserID
+    @StateObject var userViewModel = ContactViewModel()
+    @State private var selection = 1
     
-    @State private var selection = 0
-    @State var userData: UserData = UserData(name: "", dateOfBirth: "", gender: "", phoneNumber: "")
-    @State var contactVM = ContactViewModel()
-
-    public var priorityList = ["Priority 1", "Priority 2", "Priority 3"]
+    @State var userData: MainUser = MainUser(userID: "", name: "", dateOfBirth: Date.now, gender: "", phoneNumber: "")
+    
+    @State var showContacts: Bool = false
+    
+    public var priorityList = ["Priority 0", "Priority 1", "Priority 2", "Priority 3"]
+    @State var isEditingUser: Bool = false
+    @State var dateString = ""
     
     var body: some View {
         
@@ -23,82 +28,162 @@ struct Profile: View {
                 //Crear la sección para la información de usuario
                 Section("User Information"){
                     List{
-                        TextField("Name", text: $userData.name)
-                        TextField("Date of Birth:", text: $userData.dateOfBirth)
-                        TextField("Gender: ", text: $userData.gender)
-                        TextField("Phone Number: ", text: $userData.phoneNumber)
-                        Button{
-                            Task{
-                                do{
-                                    try await contactVM.addUser(user: userData)
+                        if isEditingUser {
+                            Text("UserID: \(userData.userID)")
+                            TextField("Name", text: $userData.name)
+                            DatePicker("Choose a date", selection: $userData.dateOfBirth, displayedComponents: .date)
+//                            TextField("Date of Birth:", text: $userData.dateOfBirth)
+                            TextField("Gender: ", text: $userData.gender)
+                            TextField("Phone Number: ", text: $userData.phoneNumber)
+                            Button{
+                                Task{
+                                    do{
+                                        try await userViewModel.addUser(user: userData)
+                                    }
+                                    withAnimation(.easeInOut){
+                                        isEditingUser.toggle()
+                                    }
                                 }
+                            } label:{
+                                Text("Enter information")
+                                    .foregroundStyle(Color.blue)
+                                    .frame(maxWidth: .infinity)
                             }
-                        } label:{
-                            Text("Enter information")
-                                .foregroundStyle(Color.blue)
-                                .frame(maxWidth: .infinity)
+                        } else{
+                            
+                            Text("UserID: \(userData.userID)")
+                            Text("Name: \(userData.name)")
+                            Text("Date of Birth: \(dateString)")
+                            Text("Gender: \(userData.gender)")
+                            Text("Phone Number: \(userData.phoneNumber)")
+                            Button{
+                                withAnimation(.easeInOut){
+                                    isEditingUser.toggle()
+                                }
+                            } label:{
+                                Text("Edit Information")
+                                    .foregroundStyle(Color.blue)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .onAppear{
+                                let dateFormatter = DateFormatter()
+                                   dateFormatter.dateFormat = "yyyy-MM-dd"
+                                dateString = dateFormatter.string(from: userData.dateOfBirth)
+                            }
                         }
                     }
-                }
-                //Crear la sección para la información del contacto de emergencia
-                Picker("Select your contact priority", selection: $selection){
-                    ForEach(0..<3, id:\.self){ index in
-                        Text("Priority \(index + 1)")
-                    }
-                }.pickerStyle(.menu)
-                
-                
-                switch selection {
-                case 0:
-                    PLists(sectionTitle: priorityList[selection])
-                case 1:
-                    PLists(sectionTitle: priorityList[selection])
-                case 2:
-                    PLists(sectionTitle: priorityList[selection])
-                default:
-                    Text("Not available")
+                    
                 }
                 
+                UserInformation()
             }
+            .navigationTitle("Profile")
+            .onAppear{
+                Task{
+                    do{
+                        userData.userID = UserDefaults.standard.string(forKey: "User_id") ?? userID.userID
+                        userData = try await userViewModel.getUser(userID: UserDefaults.standard.string(forKey: "User_id") ?? userID.userID)
+                        print("User default: \(String(describing: UserDefaults.standard.string(forKey: "User_id")))")
+                    }
+                }
             }
             
         }
         
     }
-
-#Preview {
-    Profile()
+    
 }
 
-struct PLists : View{
+struct UserInformation : View{
+    @StateObject var contactViewModel = ContactViewModel()
+    @EnvironmentObject var userID: UserID
+    @State private var selection = 1
     
-    @State var sectionTitle: String
+    @State var contactInformation = UserData(userID: "", name: "", dateOfBirth: Date.now, gender: "", phoneNumber: "", priority: 1)
     
-    @State var emergencyName = ""
-    @State var emergencyDoB = ""
-    @State var emergencyGender = ""
-    @State var emergencyPhoneNum = ""
-    @State var emergencyMD = ""
-    
+    @State var isEditingContact: Bool = false
+    @State var dateString = ""
+
     var body: some View{
         
-        Section(header: Text(sectionTitle).font(.headline).fontWeight(.bold)){
+        
+        Picker("Select contact priority", selection: $selection){
+            ForEach(1..<4, id:\.self){ index in
+                Text("Priority \(index)")
+            }
+        }.pickerStyle(.menu)
+        
+        Section(header: Text("Contact Information")){
             List{
-                TextField("Name", text: $emergencyName)
-                TextField("Date of Birth:", text: $emergencyDoB)
-                TextField("Gender: ", text: $emergencyGender)
-                TextField("Phone Number: ", text: $emergencyPhoneNum)
-                TextField("Medical Record: ", text: $emergencyMD)
-                Button{
+                if isEditingContact{
                     
-                } label:{
-                    Text("Enter information")
-                        .foregroundStyle(Color.blue)
-                        .frame(maxWidth: .infinity)
+                    TextField("Name", text: $contactInformation.name)
+                    DatePicker("Choose a date", selection: $contactInformation.dateOfBirth, displayedComponents: .date)
+                    TextField("Gender: ", text: $contactInformation.gender)
+                    TextField("Phone Number: ", text: $contactInformation.phoneNumber)
+                    
+                    Button {
+                        Task {
+                            do {
+                                contactInformation.priority = selection
+                                contactInformation.userID = userID.userID
+                                try await contactViewModel.addPriorityContact(user: contactInformation)
+                            } catch {
+                                print("Error adding priority contact: \(error)")
+                            }
+                            withAnimation(.easeInOut){
+                                isEditingContact.toggle()
+                            }
+                        }
+                    } label: {
+                        Text("Enter information")
+                            .foregroundStyle(Color.blue)
+                            .frame(maxWidth: .infinity)
+                    }
+                } else{
+                    Text("Name: \(contactInformation.name)")
+                    Text("Gender: \(contactInformation.gender)")
+                    Text("Date of Birth: \(dateString)")
+                    Text("Phone Number: \(contactInformation.phoneNumber)")
+                    Button{
+                        withAnimation(.easeInOut){
+                            isEditingContact.toggle()
+                        }
+                    } label:{
+                        Text("Edit Information")
+                            .foregroundStyle(Color.blue)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .onAppear{
+                        let dateFormatter = DateFormatter()
+                           dateFormatter.dateFormat = "yyyy-MM-dd"
+                        dateString = dateFormatter.string(from: contactInformation.dateOfBirth)
+                    }
                 }
             }
         }
         
         
+        .onChange(of: selection, { oldValue, newValue in
+            loadContact()
+        })
+        .task {
+            loadContact()
+        }
+        
     }
+    
+    func loadContact(){
+        Task{
+            do{
+                contactInformation.userID = UserDefaults.standard.string(forKey: "User_id") ?? userID.userID
+                contactInformation = try await contactViewModel.getPriorityContact(userID: userID.userID, priority: selection)
+            }
+        }
+    }
+}
+
+#Preview {
+    Profile()
+        .environmentObject(UserID())
 }
