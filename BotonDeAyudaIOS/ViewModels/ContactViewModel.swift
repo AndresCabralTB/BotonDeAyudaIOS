@@ -97,7 +97,7 @@ extension ContactViewModel{
         
         let dateFormatter = DateFormatter()
            dateFormatter.dateFormat = "yyyy-MM-dd"
-           let dateString = dateFormatter.string(from: user.dateOfBirth)
+        let dateString = dateFormatter.string(from: user.dateOfBirth)
 
         let data: [String: Any] = [
             "user_id": user.userID,

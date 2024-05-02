@@ -8,23 +8,33 @@
 import SwiftUI
 
 struct ContentView: View {
+    
     var body: some View {
-            NavigationView{
-                VStack{
-                    Button{ //Agregar el botón principal de ayuda
-                        
-                    }label:{ //Darle la estética y la forma al botón
-                        Text("Botón de ayuda")
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.height * 0.25)
-                            .padding(10)
-                            .foregroundStyle(Color.white)
-                            .background(Color.green)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                        .padding()
-                }.navigationTitle("Press Help Button")
+        NavigationView{
+            VStack{
+                Button{
+                    
+                }label:{
+                    Text("In case of emergencies")
+                    
+                }
+                
             }
-        
+        }
+    }
+}
+
+struct BluetoothView: View{
+    
+    var devices: [String] = ["VW Phone", "Button", "Headphones", "Sony"]
+    
+    var body: some View{
+        List{
+            ForEach(devices, id:\.self){ device in
+                Text("\(device)")
+                
+            }
+        }
     }
 }
 

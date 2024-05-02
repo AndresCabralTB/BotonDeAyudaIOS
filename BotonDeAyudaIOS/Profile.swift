@@ -24,72 +24,148 @@ struct Profile: View {
         
         //Crea un view del perfíl
         NavigationView{
-            Form{
-                //Crear la sección para la información de usuario
-                Section("User Information"){
-                    List{
-                        if isEditingUser {
-                            Text("UserID: \(userData.userID)")
-                            TextField("Name", text: $userData.name)
-                            DatePicker("Choose a date", selection: $userData.dateOfBirth, displayedComponents: .date)
-//                            TextField("Date of Birth:", text: $userData.dateOfBirth)
-                            TextField("Gender: ", text: $userData.gender)
-                            TextField("Phone Number: ", text: $userData.phoneNumber)
+            ScrollView{
+                
+                VStack(alignment: .leading){
+                    
+                    
+                    
+                    //Crear la sección para la información de usuario
+                    
+                    
+                    
+                    Section(header:
+                        Text("Your Information")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                    ){
+                        VStack(alignment: .leading){
+                            
+                            if !isEditingUser{
+                                Text("Name: \(userData.name)")
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                                Text("Phone Number: \(userData.phoneNumber)")
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                                Text("Date of Birth: \(dateString)")
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                                Text("Gender: \(userData.gender)")
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                            }else{
+                                TextField("Name", text: $userData.name)
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                                DatePicker("Choose a date", selection: $userData.dateOfBirth, displayedComponents: .date)
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                                TextField("Phone Number: ", text: $userData.phoneNumber)
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                                TextField("Gender: ", text: $userData.gender)
+                                    .fontWeight(.bold)
+                                    .padding(10)
+                                    .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                
+                            }
+                            
                             Button{
-                                Task{
-                                    do{
-                                        try await userViewModel.addUser(user: userData)
-                                    }
-                                    withAnimation(.easeInOut){
-                                        isEditingUser.toggle()
+                                
+                                if isEditingUser{
+                                    
+                                    Task{
+                                        do{
+                                            try await userViewModel.addUser(user: userData)
+                                        }
                                     }
                                 }
-                            } label:{
-                                Text("Enter information")
-                                    .foregroundStyle(Color.blue)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        } else{
-                            
-                            Text("UserID: \(userData.userID)")
-                            Text("Name: \(userData.name)")
-                            Text("Date of Birth: \(dateString)")
-                            Text("Gender: \(userData.gender)")
-                            Text("Phone Number: \(userData.phoneNumber)")
-                            Button{
-                                withAnimation(.easeInOut){
+                                withAnimation(.spring(response: 1, dampingFraction: 0.5, blendDuration: 0.5)){
                                     isEditingUser.toggle()
                                 }
                             } label:{
-                                Text("Edit Information")
-                                    .foregroundStyle(Color.blue)
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .onAppear{
-                                let dateFormatter = DateFormatter()
-                                   dateFormatter.dateFormat = "yyyy-MM-dd"
-                                dateString = dateFormatter.string(from: userData.dateOfBirth)
+                                
+                                if isEditingUser{
+                                    Text("Enter")
+                                        .fontWeight(.bold)
+                                        .padding(10)
+                                        .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                }else{
+                                    Text("Edit Information")
+                                        .fontWeight(.bold)
+                                        .padding(10)
+                                        .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                                }
                             }
                         }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color.gray).shadow(radius: 10))
                     }
                     
+                    
+                    Divider()
+                    
+                    UserInformation()
+                    
+                    Spacer()
+                    
                 }
+                .padding()
                 
-                UserInformation()
+                .onAppear{
+                    loadUserData()
+                    
+                }
             }
-            .navigationTitle("Profile")
-            .onAppear{
-                Task{
-                    do{
-                        userData.userID = UserDefaults.standard.string(forKey: "User_id") ?? userID.userID
-                        userData = try await userViewModel.getUser(userID: UserDefaults.standard.string(forKey: "User_id") ?? userID.userID)
-                        print("User default: \(String(describing: UserDefaults.standard.string(forKey: "User_id")))")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar{
+                ToolbarItem{
+                    HStack{
+                        Spacer()
+                        Text("Profile")
+                            .fontWeight(.bold)
+                        Spacer()
+                        Image(systemName: "heart.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 25)
+                            .padding(10)
+                            .foregroundStyle(Color.red)
+                            .background(Circle().foregroundStyle(Color(UIColor.secondarySystemBackground)))
                     }
                 }
             }
-            
         }
         
+    }
+    func loadUserData(){
+        Task{
+            do{
+                userData.userID = UserDefaults.standard.string(forKey: "User_id") ?? userID.userID
+                userData = try await userViewModel.getUser(userID: UserDefaults.standard.string(forKey: "User_id") ?? userID.userID)
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                dateString = dateFormatter.string(from: userData.dateOfBirth)
+                
+                print("User default: \(String(describing: UserDefaults.standard.string(forKey: "User_id")))")
+            }
+        }
     }
     
 }
@@ -97,87 +173,175 @@ struct Profile: View {
 struct UserInformation : View{
     @StateObject var contactViewModel = ContactViewModel()
     @EnvironmentObject var userID: UserID
-    @State private var selection = 1
+    @State private var selection = 0
     
     @State var contactInformation = UserData(userID: "", name: "", dateOfBirth: Date.now, gender: "", phoneNumber: "", priority: 1)
     
     @State var isEditingContact: Bool = false
+    @State var showContact: Bool = false
     @State var dateString = ""
-
+    
+    @State var scaleFactor: Bool = false
+    
     var body: some View{
         
-        
-        Picker("Select contact priority", selection: $selection){
-            ForEach(1..<4, id:\.self){ index in
-                Text("Priority \(index)")
-            }
-        }.pickerStyle(.menu)
-        
-        Section(header: Text("Contact Information")){
-            List{
-                if isEditingContact{
+        VStack{
+            
+            
+            
+            if showContact {
+                VStack(alignment: .leading){
                     
-                    TextField("Name", text: $contactInformation.name)
-                    DatePicker("Choose a date", selection: $contactInformation.dateOfBirth, displayedComponents: .date)
-                    TextField("Gender: ", text: $contactInformation.gender)
-                    TextField("Phone Number: ", text: $contactInformation.phoneNumber)
-                    
-                    Button {
-                        Task {
-                            do {
-                                contactInformation.priority = selection
-                                contactInformation.userID = userID.userID
-                                try await contactViewModel.addPriorityContact(user: contactInformation)
-                            } catch {
-                                print("Error adding priority contact: \(error)")
+                    HStack{
+                        
+                        Text("Contact Priority \(selection)")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                            .scaleEffect(scaleFactor ? 1.3 : 1)
+                            .animation(.bouncy, value: scaleFactor)
+                        
+                        
+                        Spacer()
+                        Button{
+                            withAnimation(.bouncy(duration: 0.5, extraBounce: 0.25)){
+                                showContact = false
+                                selection = 0
                             }
-                            withAnimation(.easeInOut){
-                                isEditingContact.toggle()
+                        }label:{
+                            Image(systemName: "arrow.up.circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20)
+                                .fontWeight(.bold)
+                                .padding(10)
+                                .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        }
+                        
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    if !isEditingContact{
+                        Text("Name: \(contactInformation.name)")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        
+                        Text("Phone Number: \(contactInformation.phoneNumber)")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        Text("Date of Birth: \(dateString)")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        
+                        Text("Gender: \(contactInformation.gender)")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                    }else{
+                        TextField("Name", text: $contactInformation.name)
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        TextField("Phone Number: ", text: $contactInformation.phoneNumber)
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        DatePicker("Choose a date", selection: $contactInformation.dateOfBirth, displayedComponents: .date)
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        TextField("Gender: ", text: $contactInformation.gender)
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
+                        
+                        
+                    }
+                    
+                    Button{
+                        if isEditingContact{
+                            Task{
+                                do{
+                                    try await contactViewModel.addPriorityContact(user: contactInformation)
+                                }
                             }
                         }
-                    } label: {
-                        Text("Enter information")
-                            .foregroundStyle(Color.blue)
-                            .frame(maxWidth: .infinity)
-                    }
-                } else{
-                    Text("Name: \(contactInformation.name)")
-                    Text("Gender: \(contactInformation.gender)")
-                    Text("Date of Birth: \(dateString)")
-                    Text("Phone Number: \(contactInformation.phoneNumber)")
-                    Button{
-                        withAnimation(.easeInOut){
+                        
+                        withAnimation(.spring(duration: 1, bounce: 0.6)){
                             isEditingContact.toggle()
                         }
-                    } label:{
-                        Text("Edit Information")
-                            .foregroundStyle(Color.blue)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .onAppear{
-                        let dateFormatter = DateFormatter()
-                           dateFormatter.dateFormat = "yyyy-MM-dd"
-                        dateString = dateFormatter.string(from: contactInformation.dateOfBirth)
+                    }label:{
+                        Text("Edit Contact")
+                            .fontWeight(.bold)
+                            .padding(10)
+                            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color(UIColor.secondarySystemBackground)).shadow(radius: 10))
                     }
                 }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color.gray).shadow(radius: 10))
             }
+            
+            Menu {
+                Picker("Select contact priority", selection: $selection){
+                    ForEach(1..<4, id:\.self){ index in
+                        Text("Priority \(index)")
+                    }
+                }
+            } label: {
+                HStack{
+                    Text("Priority Contacts")
+                    Image(systemName: showContact ? "arrow.up.circle" : "arrow.down.circle")
+                }
+                .foregroundStyle(Color.black)
+                .fontWeight(.bold)
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(RoundedRectangle(cornerRadius: 10).foregroundStyle(Color.gray))
+            .onChange(of: selection, { oldValue, newValue in
+                if newValue != 0{
+                    withAnimation(.bouncy(duration: 0.5, extraBounce: 0.25)){
+                        showContact = true
+                    }
+                }
+                
+                if oldValue != 0 {
+                    withAnimation(.bouncy()){
+                        scaleFactor.toggle()
+                    }completion: {
+                        scaleFactor.toggle()
+                    }
+                }
+                loadContact()
+            })
         }
-        
-        
-        .onChange(of: selection, { oldValue, newValue in
-            loadContact()
-        })
+        .frame(maxWidth: .infinity)
         .task {
             loadContact()
         }
         
     }
     
+    
     func loadContact(){
         Task{
             do{
                 contactInformation.userID = UserDefaults.standard.string(forKey: "User_id") ?? userID.userID
                 contactInformation = try await contactViewModel.getPriorityContact(userID: userID.userID, priority: selection)
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                dateString = dateFormatter.string(from: contactInformation.dateOfBirth)
+                
             }
         }
     }
