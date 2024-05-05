@@ -15,6 +15,7 @@ struct HomePage: View {
                 .tabItem {
                     Text("Home")
                     Image(systemName: "house")
+                    
                 }
             //Insertar el view del perfil
             Profile()
@@ -28,4 +29,5 @@ struct HomePage: View {
 
 #Preview {
     HomePage()
+        .environmentObject(UserID())
 }
